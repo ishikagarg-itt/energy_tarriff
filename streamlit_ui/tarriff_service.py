@@ -38,7 +38,7 @@ def build_verbruik_data(gas, dal, piek, has_solar, feed_in_norm, feed_in_offpeak
         }
     }
     if has_solar:
-        data["elektriciteitverbruikDubbelMeter"]["opwekkingDal"] = int(feed_in_norm or 0),
+        data["elektriciteitverbruikDubbelMeter"]["opwekkingDal"] = int(feed_in_norm or 0)
         data["elektriciteitverbruikDubbelMeter"]["opwekkingPiek"] = int(feed_in_offpeak or 0)
     return data
 
@@ -67,7 +67,7 @@ def build_request_body(postcode, huisnummer, contract_kind, tarriff_period, show
     
     return request_body
 
-def extract_and_format_data(data, cost_type, contract_kind):
+def extract_and_format_data(data, cost_type, contract_kind, has_solar):
     cost_column = (
         'contractTermAmounts_monthlyTermAmounts_termInclDiscountInclTaxReduction'
         if cost_type == "Monthly Cost"
@@ -77,17 +77,23 @@ def extract_and_format_data(data, cost_type, contract_kind):
 
     df = pd.json_normalize(data, sep='_')
 
-    if contract_kind in ["Vast", "Variabel"]:
+    if contract_kind in ("Vast", "Variabel"):
         tariff_columns = {
-            'prijsdetails_stroomLeveringstariefHoog': 'Electricity Peak Tariff (High) per kWh (€)',
-            'prijsdetails_stroomLeveringstariefLaag': 'Electricity Off-peak Tariff (Low) per kWh (€)',
-            'prijsdetails_gasLeveringstarief': 'Gas Tariff per m³ (€)'
+            "prijsdetails_stroomLeveringstariefHoog":  "Electricity Peak Tariff (High) per kWh (€)",
+            "prijsdetails_stroomLeveringstariefLaag":  "Electricity Off-peak Tariff (Low) per kWh (€)",
+            "prijsdetails_gasLeveringstarief": "Gas Tariff per m³ (€)",
         }
+        if has_solar:
+            tariff_columns["prijsdetails_stroomInkoopvergoeding"] = "Purchase fee per kWh (€)"
+
     elif contract_kind == "Dynamisch":
         tariff_columns = {
-            'prijsdetails_stroomDynamischLeveringstarief': 'Dynamic Electricity Tariff per kWh (€)',
-            'prijsdetails_gasDynamischLeveringstarief': 'Dynamic Gas Tariff per m³ (€)'
+            "prijsdetails_stroomDynamischLeveringstarief": "Dynamic Electricity Tariff per kWh (€)",
+            "prijsdetails_gasDynamischLeveringstarief": "Dynamic Gas Tariff per m³ (€)",
         }
+        if has_solar:
+            tariff_columns["prijsdetails_stroomInkoopvergoeding"] = "Purchase fee per kWh (€)"
+            tariff_columns["prijsdetails_electricityFeedInCostPerKWh"] = "Feed-in cost per kWh (€)"
     else:
         tariff_columns = {}
 
@@ -120,7 +126,7 @@ def fetch_tariffs(postcode, huisnummer, contract_kind, show_tarriff_period, gas,
         res.raise_for_status()
         data = res.json()
 
-        return extract_and_format_data(data, cost_type, contract_kind)
+        return extract_and_format_data(data, cost_type, contract_kind, has_solar)
 
     except Exception as e:
         return pd.DataFrame([{"Error": str(e)}]), None
