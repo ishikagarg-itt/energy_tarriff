@@ -79,21 +79,21 @@ def extract_and_format_data(data, cost_type, contract_kind):
 
     if contract_kind in ["Vast", "Variabel"]:
         tariff_columns = {
-            'prijsdetails_stroomLeveringstariefHoog': 'Electricity Peak Tariff (High) per kWh',
-            'prijsdetails_stroomLeveringstariefLaag': 'Electricity Off-peak Tariff (Low) per kWh',
-            'prijsdetails_gasLeveringstarief': 'Gas Tariff per m³'
+            'prijsdetails_stroomLeveringstariefHoog': 'Electricity Peak Tariff (High) per kWh (€)',
+            'prijsdetails_stroomLeveringstariefLaag': 'Electricity Off-peak Tariff (Low) per kWh (€)',
+            'prijsdetails_gasLeveringstarief': 'Gas Tariff per m³ (€)'
         }
     elif contract_kind == "Dynamisch":
         tariff_columns = {
-            'prijsdetails_stroomDynamischLeveringstarief': 'Dynamic Electricity Tariff per kWh',
-            'prijsdetails_gasDynamischLeveringstarief': 'Dynamic Gas Tariff per m³'
+            'prijsdetails_stroomDynamischLeveringstarief': 'Dynamic Electricity Tariff per kWh (€)',
+            'prijsdetails_gasDynamischLeveringstarief': 'Dynamic Gas Tariff per m³ (€)'
         }
     else:
         tariff_columns = {}
 
     base_columns = {
         'vendorName': 'Vendor Name',
-        'naam': 'Provider',
+        'naam': 'Plan name',
         'contractKind': 'Contract Type',
         cost_column: cost_label
     }
