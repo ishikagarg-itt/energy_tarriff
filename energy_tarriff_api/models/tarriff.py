@@ -1,0 +1,2 @@
+class Tarriff:
+    pass
