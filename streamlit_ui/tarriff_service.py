@@ -101,7 +101,11 @@ def extract_and_format_data(data, cost_type, contract_kind, has_solar):
         'vendorName': 'Vendor Name',
         'naam': 'Plan name',
         'contractKind': 'Contract Type',
-        cost_column: cost_label
+        cost_column: cost_label,
+        'elektraGroenIndex': 'Stream',
+        'gasGroenIndex': 'Gas',
+        'productLabel': 'Contract Duration',
+        'aandachtspunten': 'Description'
     }
 
     rename_map = {**base_columns, **tariff_columns}
