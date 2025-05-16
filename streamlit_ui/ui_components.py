@@ -11,7 +11,8 @@ GAS_LABEL = {
     1: "Natural gas with CO₂ compensation",
 }
 
-EXCLUDE_COLS = {"Description", "Contract Duration", "Stream", "Gas"}
+EXCLUDE_COLS = {"Description", "Contract Duration", "Stream", "Gas", "Discount per Year (€)", 
+                "Electricity Fixed delivery cost per month (€)", "Gas Fixed delivery cost per month (€)"}
 
 def render_filters():
     """Render all user input filters and return values as a dictionary."""
@@ -31,48 +32,65 @@ def render_filters():
         "submit": submit
     }
 
+
 def _render_address_inputs():
-    postcode = st.text_input("Postcode")
-    huisnummer = st.text_input("Huisnummer")
+    col1, col2, _ = st.columns([2, 2, 1])
+    with col1:
+        postcode = st.text_input("Postcode")
+    with col2:
+        huisnummer = st.text_input("Huisnummer")
     return {"postcode": postcode, "huisnummer": huisnummer}
 
+
 def _render_usage_inputs():
-    piek = _render_labeled_input("Current Normal (Peak)", "Kwh")
-    dal = _render_labeled_input("Stream valley (Off-peak)", "Kwh")
-    gas = _render_labeled_input("Gas", "m³")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        piek = _render_labeled_input("Electricity Current Normal (Peak)", "Kwh")
+    with col2:
+        dal = _render_labeled_input("Electricity Stream valley (Off-peak)", "Kwh")
+    with col3:
+        gas = _render_labeled_input("Gas", "m³")
     return {"piek": piek, "dal": dal, "gas": gas}
 
+
 def _render_contract_options():
-    contract_kind = st.selectbox("Contract Type", ["Vast", "Variabel", "Dynamisch"])
-    show_tarriff_period = contract_kind == "Vast"
-    tarriff_period = None
-    if show_tarriff_period:
-        tarriff_period = st.selectbox("Tariff Period", ["OneYear", "TwoYear", "ThreeYear"])
-    cost_type = st.selectbox("Show Cost As", ["Monthly Cost", "Yearly Cost"])
-    result = {
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        contract_kind = st.selectbox("Contract Type", ["Vast", "Variabel", "Dynamisch"])
+    with col2:
+        cost_type = st.selectbox("Show Cost As", ["Monthly Cost", "Yearly Cost"])
+    with col3:
+        tarriff_period = None
+        if contract_kind == "Vast":
+            tarriff_period = st.selectbox("Tariff Period", ["OneYear", "TwoYear", "ThreeYear"])
+
+    return {
         "contract_kind": contract_kind,
         "cost_type": cost_type,
-        "show_tarriff_period": show_tarriff_period,
+        "show_tarriff_period": contract_kind == "Vast",
         "tarriff_period": tarriff_period
     }
-    
-    return result
+
 
 def _render_solar_inputs():
     st.session_state["has_solar"] = st.toggle("Do you have solar panels?", value=st.session_state["has_solar"])
     feed_in_norm = feed_in_offpeak = None
     if st.session_state["has_solar"]:
         st.markdown("### ☀️ Solar Panel Feed-in")
-        feed_in_norm = _render_labeled_input("Feed-in normal", "Kwh", key="norm")
-        feed_in_offpeak = _render_labeled_input("Off-peak feed-in", "Kwh", key="dal")
+        col1, col2 = st.columns(2)
+        with col1:
+            feed_in_norm = _render_labeled_input("Feed-in normal", "Kwh", key="norm")
+        with col2:
+            feed_in_offpeak = _render_labeled_input("Off-peak feed-in", "Kwh", key="dal")
     return {
         "has_solar": st.session_state["has_solar"],
         "feed_in_norm": feed_in_norm,
         "feed_in_offpeak": feed_in_offpeak
     }
 
+
 def _render_labeled_input(label, unit, key=None):
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([4, 1])
     with col1:
         value = st.text_input(label, key=key) if key else st.text_input(label)
     with col2:
@@ -86,45 +104,39 @@ def render_tariff_results(df: pd.DataFrame, cost_label: str) -> None:
 
     df_full = df.copy()
 
-    # Filter columns for the main table
     cols_to_show = [col for col in df_full.columns if col not in EXCLUDE_COLS]
     df_display = df_full[cols_to_show].copy()
 
-    # Render image HTML (for display purposes only)
     if "Logo" in df_display.columns:
         df_display["Logo"] = df_display["Logo"].apply(
             lambda url: f'<img src="{url}" alt="Logo" width="50">' if url else ""
         )
 
     all_cols = list(df_display.columns)
-    all_cols.append("LearnMore")
+    all_cols.append("ShowMore")
 
-    # Define widths for columns (you can adjust or make all equal)
-    # For example, give Logo smaller width, others normal width, LearnMore small width
     col_widths = []
     for col in all_cols:
         if col == "Logo":
             col_widths.append(3)
-        elif col == "LearnMore":
+        elif col == "ShowMore":
             col_widths.append(2.5)
         else:
             col_widths.append(4)
 
-    # Render headers dynamically (except index column if you want to skip it)
     header_cols = st.columns(col_widths)
     for i, col_name in enumerate(all_cols):
-        if col_name == "LearnMore":
+        if col_name == "ShowMore":
             header_cols[i].markdown("🔍")
         else:
             header_cols[i].markdown(f"{col_name}")
 
-    # Render rows dynamically
     for i, row in df_display.iterrows():
         with st.container():
             row_cols = st.columns(col_widths)
             for j, col_name in enumerate(all_cols):
-                if col_name == "LearnMore":
-                    if row_cols[j].button("Learn more", key=f"learn_more_{i}"):
+                if col_name == "ShowMore":
+                    if row_cols[j].button("Show more", key=f"show_more_{i}"):
                         st.session_state["selected_row"] = i
                 else:
                     val = row[col_name]
@@ -149,11 +161,17 @@ def _render_row_details(row: pd.Series, cost_label: str) -> None:
 
             st.markdown(f"**Electricity (Stroom):** {stroom_text}")
             st.markdown(f"**Gas:** {gas_text}")
-            st.markdown(f"**Contract Duration:** {row.get('Contract Duration', 'n/a')}")
+            st.markdown(f"**Contract Duration:** {row.get("Contract Duration", "n/a")}")
+            discount = row.get("Discount per Year (€)")
+            if discount is not None and pd.notna(discount):
+                st.markdown(f"**Discount:** {discount}")
+
 
         with col2:
-            st.markdown("### Description")
-            if "Description" in row and pd.notnull(row["Description"]):
-                st.markdown(row["Description"])
-            else:
-                st.markdown("No additional information provided.")
+            description = row.get("Description")
+            if isinstance(description, list) and len(description) > 0:
+                st.markdown("**Description**")
+                for line in description:
+                    st.markdown(f"{line}")
+            st.markdown(f"**Electricity Fixed Delivery Cost :** {row.get("Electricity Fixed delivery cost per month (€)", "n/a")}")
+            st.markdown(f"**Gas Fixed Delivery Cost:** {row.get("Gas Fixed delivery cost per month (€)", "n/a")}")

@@ -51,7 +51,7 @@ def build_request_body(postcode, huisnummer, contract_kind, tarriff_period, show
             "extraHelptMetBesparen": False,
             "extraHelptMetInzichtInGebruik": False,
             "hasSmartMeter": True,
-            "stroomGroenheid": 3,
+            "stroomGroenheid": 1,
             "contractKind": contract_kind,
         },
         "adres": {
@@ -81,7 +81,7 @@ def extract_and_format_data(data, cost_type, contract_kind, has_solar):
         tariff_columns = {
             "prijsdetails_stroomLeveringstariefHoog":  "Electricity Peak Tariff (High) per kWh (€)",
             "prijsdetails_stroomLeveringstariefLaag":  "Electricity Off-peak Tariff (Low) per kWh (€)",
-            "prijsdetails_gasLeveringstarief": "Gas Tariff per m³ (€)",
+            "prijsdetails_gasLeveringstarief": "Gas Tariff per m³ (€)"
         }
         if has_solar:
             tariff_columns["prijsdetails_stroomInkoopvergoeding"] = "Purchase fee per kWh (€)"
@@ -94,6 +94,7 @@ def extract_and_format_data(data, cost_type, contract_kind, has_solar):
         if has_solar:
             tariff_columns["prijsdetails_stroomInkoopvergoeding"] = "Purchase fee per kWh (€)"
             tariff_columns["prijsdetails_electricityFeedInCostPerKWh"] = "Feed-in cost per kWh (€)"
+            tariff_columns["prijsdetails_gasInkoopvergoeding"] = "Purchase fee per m³ (€)"
     else:
         tariff_columns = {}
 
@@ -105,10 +106,16 @@ def extract_and_format_data(data, cost_type, contract_kind, has_solar):
         'elektraGroenIndex': 'Stream',
         'gasGroenIndex': 'Gas',
         'productLabel': 'Contract Duration',
-        'aandachtspunten': 'Description'
+        'aandachtspunten': 'Description',
+        'prijsdetails_stroomVasteLeveringskosten': 'Electricity Fixed delivery cost per month (€)',
+        'prijsdetails_gasVasteLeveringskosten': 'Gas Fixed delivery cost per month (€)'
     }
 
     rename_map = {**base_columns, **tariff_columns}
+
+    if "discountAmountPerYear" in df.columns:
+        rename_map["discountAmountPerYear"] = "Discount per Year (€)"
+
     selected_columns = list(rename_map.keys())
 
     df = df[[col for col in selected_columns if col in df.columns]]

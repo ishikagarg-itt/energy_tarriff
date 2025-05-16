@@ -7,7 +7,7 @@ from services.base import BaseService
 from crud.tarriff import tarriff_crud
 
 class TarriffService(BaseService):
-    API_URL = "http://localhost:9000/tarriffs"
+    API_URL = "https://www.independer.nl/api/energie/zoekresultaat/getzoekresultaat?v=61"
 
     def __init__(self):
         super().__init__(tarriff_crud)
