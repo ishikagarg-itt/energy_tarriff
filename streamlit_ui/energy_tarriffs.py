@@ -28,10 +28,8 @@ if user_inputs.get("submit"):
     
     if selected_tool == "independer":
         df, cost_label = fetch_independer_tariffs(**user_inputs_filtered)
-        st.write("dataframe:", df)
     elif selected_tool == "energyvergelijk":
         df, cost_label = fetch_energievergelijk_tariffs(**user_inputs_filtered)
-        st.write("dataframe:", df)
     else:
         df, cost_label = None, None
 
