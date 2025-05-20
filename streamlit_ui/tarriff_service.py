@@ -42,7 +42,7 @@ def build_verbruik_data(gas, dal, piek, has_solar, feed_in_norm, feed_in_offpeak
         data["elektriciteitverbruikDubbelMeter"]["opwekkingPiek"] = int(feed_in_offpeak or 0)
     return data
 
-def build_request_body(postcode, huisnummer, contract_kind, tarriff_period, show_tariff_period, verbruik_data):
+def build_independer_request_body(postcode, huisnummer, contract_kind, tarriff_period, show_tariff_period, verbruik_data):
     request_body = {
         "contractWensen": {
             "contractSoort": "ElektraEnGas",
@@ -67,7 +67,7 @@ def build_request_body(postcode, huisnummer, contract_kind, tarriff_period, show
     
     return request_body
 
-def extract_and_format_data(data, cost_type, contract_kind, has_solar):
+def extract_and_format_independer_data(data, cost_type, contract_kind, has_solar):
     cost_column = (
         'contractTermAmounts_monthlyTermAmounts_termInclDiscountInclTaxReduction'
         if cost_type == "Monthly Cost"
@@ -126,18 +126,86 @@ def extract_and_format_data(data, cost_type, contract_kind, has_solar):
 
     return df, cost_label
 
-def fetch_tariffs(postcode, huisnummer, contract_kind, show_tarriff_period, gas, dal, piek,
+def fetch_independer_tariffs(postcode, huisnummer, contract_kind, show_tarriff_period, gas, dal, piek,
                   has_solar, feed_in_norm=None, feed_in_offpeak=None, cost_type="Monthly Cost", tarriff_period=None):
     try:
         verbruik_data = build_verbruik_data(gas, dal, piek, has_solar, feed_in_norm, feed_in_offpeak)
-        request_body = build_request_body(postcode, huisnummer, contract_kind, tarriff_period, 
+        request_body = build_independer_request_body(postcode, huisnummer, contract_kind, tarriff_period, 
                                           show_tarriff_period, verbruik_data)
 
-        res = requests.post("http://localhost:8000/energy-tarriffs/", json=request_body)
+        res = requests.post("http://localhost:8000/independer-energy-tarriffs/", json=request_body)
         res.raise_for_status()
         data = res.json()
 
-        return extract_and_format_data(data, cost_type, contract_kind, has_solar)
+        return extract_and_format_independer_data(data, cost_type, contract_kind, has_solar)
+
+    except Exception as e:
+        return pd.DataFrame([{"Error": str(e)}]), None
+
+def build_energievergelijk_request_body(postcode, huisnummer, contract_kind, tarriff_period, show_tariff_period, cost_type, durability):
+    request_body = {"lang":"NL", "zipcode": postcode, "housenumber": huisnummer}
+    if cost_type == "Monthly Cost":
+        request_body["price_rate"] = "m"
+    else:
+        request_body["price_rate"] = "y"
+    if contract_kind == "Vast" and tarriff_period == "OneYear":
+        request_body["filters"] = ["2:16"]
+    elif contract_kind == "Vast" and tarriff_period == "ThreeYear":
+        request_body["filters"] = ["2:7"]
+    elif contract_kind == "Variabel":
+        request_body["filters"] = ["2:4"]
+    elif contract_kind == "Dynamisch":
+        request_body["filters"] = ["2:6"]
+    elif contract_kind == "Best Contracts":
+        request_body["filters"] = ["2:5"]
+
+    if durability == "No Preference":
+           request_body.setdefault("filters", []).append("1:1")
+    else:
+        request_body.setdefault("filters", []).append("1:2")
+    return request_body
+
+def extract_and_format_energievergelijk_data(data, cost_type):
+    cost_label = "Monthly Cost (€)" if cost_type == "Monthly Cost" else "Yearly Cost (€)"
+
+    df = pd.json_normalize(data, sep='_')
+
+    if 'summary' in df.columns:
+        df['summary'] = df['summary'].apply(lambda x: x[0] if isinstance(x, list) and x else None)
+
+
+    base_columns = {
+        'provider_name': 'Vendor Name',
+        'provider_logo': 'Vendor Logo',
+        'pricing_display_total': 'Total Price',
+        'name': 'Contract Type',
+        'pricing_details_power_tariff': 'Electricity tarriff per kWh (€)',
+        'pricing_details_gas_tariff': 'Gas tarriff per m³ (€)',
+        'summary': 'Energy Type',
+        'pricing_details_discount_display_sum': 'Discount per Year',
+        'pricing_details_discount_type': 'Discount Type',
+        'terms_type': 'Term',
+        'terms_end': 'Term End'
+    }
+
+    rename_map = {**base_columns}
+    selected_columns = list(rename_map.keys())
+
+    df = df[[col for col in selected_columns if col in df.columns]]
+    df.rename(columns=rename_map, inplace=True)
+
+    return df, cost_label
+
+def fetch_energievergelijk_tariffs(postcode, huisnummer, contract_kind, show_tarriff_period, durability, cost_type="Monthly Cost", tarriff_period=None):
+    try:
+        request_body = build_energievergelijk_request_body(postcode, huisnummer, contract_kind, tarriff_period, 
+                                          show_tarriff_period, cost_type, durability)
+
+        res = requests.post("http://localhost:8000/energievergelijk-energy-tarriffs/", json=request_body)
+        res.raise_for_status()
+        data = res.json()
+
+        return extract_and_format_energievergelijk_data(data, cost_type)
 
     except Exception as e:
         return pd.DataFrame([{"Error": str(e)}]), None

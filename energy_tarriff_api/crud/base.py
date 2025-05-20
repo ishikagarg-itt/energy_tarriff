@@ -1,5 +1,5 @@
 from typing import Type, TypeVar, Generic
-from log import get_logger
+from energy_tarriff_api.log import get_logger
 
 ORMModel = TypeVar("ORMModel")
 log = get_logger(__name__)

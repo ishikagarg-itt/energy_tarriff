@@ -1,5 +1,5 @@
 from typing import Generic, TypeVar
-from crud.base import CRUDRepository
+from energy_tarriff_api.crud.base import CRUDRepository
 
 ModelType = TypeVar("ModelType")
 

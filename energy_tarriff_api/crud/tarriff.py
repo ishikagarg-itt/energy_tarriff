@@ -1,4 +1,4 @@
 from .base import CRUDRepository
-from models.tarriff import Tarriff
+from energy_tarriff_api.models.tarriff import Tarriff
 
 tarriff_crud = CRUDRepository(Tarriff)
