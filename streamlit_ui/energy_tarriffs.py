@@ -1,6 +1,7 @@
 import streamlit as st
 from tarriff_service import fetch_independer_tariffs, fetch_energievergelijk_tariffs
 from ui_components import render_energievergelijk_filters, render_independer_filters, render_independer_tariff_results, render_energievergelijk_tariff_results
+import os
 
 st.set_page_config(page_title="Energy Tariff Viewer", layout="wide")
 st.title("🔌 Energy Tariff Viewer")
@@ -20,7 +21,9 @@ elif selected_tool == "energyvergelijk":
 else:
     user_inputs = {}
 
-with open("styles.css", encoding="utf-8") as f:
+style_path = os.path.join(os.path.dirname(__file__), "styles.css")
+
+with open(style_path, encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 if user_inputs.get("submit"):
