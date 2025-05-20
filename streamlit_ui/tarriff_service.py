@@ -133,7 +133,7 @@ def fetch_independer_tariffs(postcode, huisnummer, contract_kind, show_tarriff_p
         request_body = build_independer_request_body(postcode, huisnummer, contract_kind, tarriff_period, 
                                           show_tarriff_period, verbruik_data)
 
-        res = requests.post("http://localhost:8000/independer-energy-tarriffs/", json=request_body)
+        res = requests.post("https://energy-tarriff.onrender.com/independer-energy-tarriffs/", json=request_body)
         res.raise_for_status()
         data = res.json()
 
@@ -201,7 +201,7 @@ def fetch_energievergelijk_tariffs(postcode, huisnummer, contract_kind, show_tar
         request_body = build_energievergelijk_request_body(postcode, huisnummer, contract_kind, tarriff_period, 
                                           show_tarriff_period, cost_type, durability)
 
-        res = requests.post("http://localhost:8000/energievergelijk-energy-tarriffs/", json=request_body)
+        res = requests.post("https://energy-tarriff.onrender.com/energievergelijk-energy-tarriffs/", json=request_body)
         res.raise_for_status()
         data = res.json()
 
