@@ -74,7 +74,7 @@ class IndependerTarriffService(BaseService):
             24: "Unive via Greenchoice",
             90: "Next Energy",
             24: "Just Energy",
-            78: "Frank Energy",
+            95: "Frank Energy",
             88: "Clean Energy",
             91: "Tibber",
             80: "North Energy",
