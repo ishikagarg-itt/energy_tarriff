@@ -51,20 +51,20 @@ def render_energievergelijk_filters():
 def _render_address_inputs():
     col1, col2, _ = st.columns([2, 2, 1])
     with col1:
-        postcode = st.text_input("Postcode")
+        postcode = st.text_input("Postcode", value=st.session_state.get("postcode", "1071 XX"))
     with col2:
-        huisnummer = st.text_input("Huisnummer")
+        huisnummer = st.text_input("Huisnummer", value=st.session_state.get("huisnummer", "1"))
     return {"postcode": postcode, "huisnummer": huisnummer}
 
 
 def _render_usage_inputs():
     col1, col2, col3 = st.columns(3)
     with col1:
-        piek = _render_labeled_input("Electricity Current Normal (Peak)", "Kwh")
+        piek = _render_labeled_input("Electricity Current Normal (Peak)", "Kwh", default="2000", key="piek")
     with col2:
-        dal = _render_labeled_input("Electricity Stream valley (Off-peak)", "Kwh")
+        dal = _render_labeled_input("Electricity Stream valley (Off-peak)", "Kwh", default="1000", key="dal")
     with col3:
-        gas = _render_labeled_input("Gas", "m³")
+        gas = _render_labeled_input("Gas", "m³", default="1000", key="gas")
     return {"piek": piek, "dal": dal, "gas": gas}
 
 
@@ -115,9 +115,9 @@ def _render_solar_inputs():
         st.markdown("### ☀️ Solar Panel Feed-in")
         col1, col2 = st.columns(2)
         with col1:
-            feed_in_norm = _render_labeled_input("Feed-in normal", "Kwh", key="norm")
+            feed_in_norm = _render_labeled_input("Feed-in normal", "Kwh", default="2000", key="norm")
         with col2:
-            feed_in_offpeak = _render_labeled_input("Off-peak feed-in", "Kwh", key="dal")
+            feed_in_offpeak = _render_labeled_input("Off-peak feed-in", "Kwh", default="1000", key="offpeak")
     return {
         "has_solar": st.session_state["has_solar"],
         "feed_in_norm": feed_in_norm,
@@ -125,10 +125,10 @@ def _render_solar_inputs():
     }
 
 
-def _render_labeled_input(label, unit, key=None):
+def _render_labeled_input(label, unit, default="", key=None):
     col1, col2 = st.columns([4, 1])
     with col1:
-        value = st.text_input(label, key=key) if key else st.text_input(label)
+        value = st.text_input(label,value=st.session_state.get(key, default), key=key) if key else st.text_input(label)
     with col2:
         st.markdown(unit)
     return value
