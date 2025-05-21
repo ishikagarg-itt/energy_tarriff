@@ -42,6 +42,8 @@ class EnergievergelijkTarriffService(BaseService):
         df = pd.json_normalize(tarriffs, sep="_")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"tarriff_data_{timestamp}.csv"
-        file_path = os.path.join("exports_energievergelijk", file_name)
-        os.makedirs("exports_energievergelijk", exist_ok=True)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        export_dir = os.path.join(base_dir, "exports_energievergelijk")
+        os.makedirs(export_dir, exist_ok=True)
+        file_path = os.path.join(export_dir, file_name)
         df.to_csv(file_path, index=False, encoding="utf-8")

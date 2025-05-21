@@ -50,8 +50,10 @@ class IndependerTarriffService(BaseService):
         df = pd.json_normalize(tarriffs, sep="_")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"tarriff_data_{timestamp}.csv"
-        file_path = os.path.join("exports_independer", file_name)
-        os.makedirs("exports_independer", exist_ok=True)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        export_dir = os.path.join(base_dir, "exports_independer")
+        os.makedirs(export_dir, exist_ok=True)
+        file_path = os.path.join(export_dir, file_name)
         df.to_csv(file_path, index=False, encoding="utf-8")
 
     def _get_vendor_mapping(self) -> dict:
