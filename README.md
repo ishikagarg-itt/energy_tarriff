@@ -1,4 +1,5 @@
 Energy tarriff:
+
 Energy Tarriff is a simple application to compare energy rates for different vendors which gets its data from different comparison tools. You have the flixibility to choose between comparison tools.
 
 Core technologies
