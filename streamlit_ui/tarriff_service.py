@@ -25,7 +25,8 @@ LOGO_URLS = {
     "Tibber": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/tibber.svg",
     "North Energy": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/noord-energie.svg",
     "Solar Plan": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/zonneplan.svg",
-    "Hello Current": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/hallostroom.svg"
+    "Hello Current": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/hallostroom.svg",
+    "Frank Energy Dynamic": "https://www.independer-static.nl/images/logos/maatschappijen/thumb/frank-energie-dynamisch.svg"
 }
 
 def build_verbruik_data(gas, dal, piek, has_solar, feed_in_norm, feed_in_offpeak):
